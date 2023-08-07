@@ -16,6 +16,12 @@ extern "C" {
 #define CSP_QUEUE_OK 0
 #define CSP_QUEUE_ERROR -1
 
+#if (CSP_MACOSX)
+#define NOINIT "__DATA,.noinit"
+#else
+#define NOINIT ".noinit"
+#endif
+
 typedef void * csp_queue_handle_t;
 
 #if (CSP_FREERTOS)

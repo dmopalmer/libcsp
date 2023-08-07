@@ -7,7 +7,7 @@
 #define CSP_SEMAPHORE_OK 	0
 #define CSP_SEMAPHORE_ERROR	-1
 
-#if (CSP_POSIX || __DOXYGEN__)
+#if (CSP_POSIX ||  __DOXYGEN__)
     #include <semaphore.h>
     typedef sem_t csp_bin_sem_t;
 #elif (CSP_FREERTOS)
@@ -17,6 +17,12 @@
 #elif (CSP_ZEPHYR)
     #include <zephyr/kernel.h>
     typedef struct k_sem csp_bin_sem_t;
+#elif (CSP_MACOSX)
+    #include <pthread.h>
+    #include "arch/posix/pthread_queue.h"
+
+    typedef pthread_queue_t * csp_bin_sem_t;
+    typedef pthread_queue_t * csp_mutex_t;
 #endif
 
 /**

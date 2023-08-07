@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 
 #include <csp/csp.h>
-#include <endian.h>
+#include <csp/csp_endian.h>
 #include <csp/csp_interface.h>
 #include <csp/csp_id.h>
 

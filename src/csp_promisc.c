@@ -8,8 +8,8 @@
 #if (CSP_USE_PROMISC)
 
 static csp_queue_handle_t csp_promisc_queue = NULL;
-static csp_static_queue_t csp_promisc_queue_static __attribute__((section(".noinit")));
-char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __attribute__((section(".noinit")));
+static csp_static_queue_t csp_promisc_queue_static __attribute__((section(NOINIT)));
+char csp_promisc_queue_buffer[sizeof(csp_packet_t *) * CSP_CONN_RXQUEUE_LEN] __attribute__((section(NOINIT)));
 
 static int csp_promisc_enabled = 0;
 

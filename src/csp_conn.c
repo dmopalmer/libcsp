@@ -20,7 +20,7 @@
 #endif
 
 /* Connection pool */
-static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(".noinit")));
+static csp_conn_t arr_conn[CSP_CONN_MAX] __attribute__((section(NOINIT)));
 
 void csp_conn_check_timeouts(void) {
 #if (CSP_USE_RDP)

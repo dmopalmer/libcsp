@@ -849,6 +849,7 @@ static PyObject * pycsp_zmqhub_init(PyObject * self, PyObject * args) {
 }
 #endif /* CSP_HAVE_LIBZMQ */
 
+#if CSP_HAVE_LIBSOCKETCAN
 static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	char * ifc;
 	int bitrate = 1000000;
@@ -864,6 +865,7 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 
 	Py_RETURN_NONE;
 }
+#endif /* CSP_HAVE_LIBSOCKETCAN */
 
 static PyObject * pycsp_kiss_init(PyObject * self, PyObject * args) {
 	char * device;
@@ -992,8 +994,10 @@ static PyMethodDef methods[] = {
 #endif /* CSP_HAVE_LIBZMQ */
 	{"kiss_init", pycsp_kiss_init, METH_VARARGS, ""},
 
+#if CSP_HAVE_LIBSOCKETCAN
 	/* csp/drivers/can_socketcan.h */
 	{"can_socketcan_init", pycsp_can_socketcan_init, METH_VARARGS, ""},
+#endif /* CSP_HAVE_LIBSOCKETCAN */
 
 	/* helpers */
 	{"packet_get_length", pycsp_packet_get_length, METH_O, ""},

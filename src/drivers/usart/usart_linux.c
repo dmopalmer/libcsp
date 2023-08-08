@@ -9,7 +9,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/time.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 #include <pthread.h>
@@ -86,6 +86,13 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		case 230400:
 			brate = B230400;
 			break;
+#ifndef B460800
+	#if B230400 == 230400
+		/* This system uses raw baudrates.  It is worth a try to just pass a number */ 
+		default:
+			brate = conf->baudrate;
+			break;
+	#else
 		case 460800:
 			brate = B460800;
 			break;
@@ -125,6 +132,8 @@ int csp_usart_open(const csp_usart_conf_t * conf, csp_usart_callback_t rx_callba
 		default:
 			csp_print("%s: Unsupported baudrate: %u\n", __FUNCTION__, conf->baudrate);
 			return CSP_ERR_INVAL;
+	#endif	/* Use raw baudrate value */
+#endif  /* Ran out of pre-defined baudrates */
 	}
 
 	int fd = open(conf->device, O_RDWR | O_NOCTTY | O_NONBLOCK);

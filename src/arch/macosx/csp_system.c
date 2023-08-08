@@ -34,15 +34,3 @@ void csp_reboot_hook(void) {
 void csp_shutdown_hook(void) {
 	exit(0);	// not implemented
 }
-
-
-/* usart lock */
-static pthread_mutex_t usart_lock = PTHREAD_MUTEX_INITIALIZER;
-
-void csp_usart_lock(void * driver_data) {
-	pthread_mutex_lock(&usart_lock);
-}
-
-void csp_usart_unlock(void * driver_data) {
-	pthread_mutex_unlock(&usart_lock);
-}

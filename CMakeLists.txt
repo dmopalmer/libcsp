@@ -5,7 +5,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(BUILD_SHARED_LIBS ON)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   set(CSP_MACOSX 1)
-  add_subdirectory(macosx)
+  add_subdirectory(arch/macosx)
 endif()
 
 add_library(csp)

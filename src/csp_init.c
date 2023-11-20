@@ -3,7 +3,7 @@
 #include <csp/interfaces/csp_if_lo.h>
 #include <csp/arch/csp_time.h>
 #include <csp/csp_id.h>
-#include <csp_autoconfig.h>
+#include "csp/autoconfig.h"
 #include "csp_conn.h"
 #include "csp_qfifo.h"
 #include "csp_port.h"
@@ -40,10 +40,6 @@ void csp_init(void) {
 	csp_if_lo.netmask = csp_id_get_host_bits();
 	csp_iflist_add(&csp_if_lo);
 
-}
-
-void csp_free_resources(void) {
-	csp_rtable_free();
 }
 
 const csp_conf_t * csp_get_conf(void) {

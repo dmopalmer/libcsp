@@ -77,7 +77,7 @@ def configure(ctx):
                                          "-Wwrite-strings", "-Wno-unused-parameter", "-Werror"])
 
     # Setup default include path and any extra defined
-    ctx.env.append_unique('INCLUDES_CSP', ['.', 'include'] + ctx.options.includes.split(','))
+    ctx.env.append_unique('INCLUDES_CSP', ['include', 'src'] + ctx.options.includes.split(','))
 
     # Store OS as env variable
     ctx.env.OS = ctx.options.with_os
@@ -85,10 +85,6 @@ def configure(ctx):
     # Platform/OS specifics
     if ctx.options.with_os == 'posix':
         ctx.env.append_unique('LIBS', ['rt', 'pthread', 'util'])
-    elif ctx.options.with_os == 'macosx':
-        ctx.env.append_unique('LIBS', ['pthread'])
-        if ctx.env.CC_VERSION[0] == '9':
-            ctx.env.append_unique('CFLAGS', ['-Wno-missing-field-initializers'])
 
     ctx.define_cond('CSP_FREERTOS', ctx.options.with_os == 'freertos')
     ctx.define_cond('CSP_POSIX', ctx.options.with_os == 'posix')
@@ -178,7 +174,7 @@ def configure(ctx):
     ctx.define('CSP_USE_DEDUP', ctx.options.enable_dedup)
 
 
-    ctx.write_config_header('csp_autoconfig.h')
+    ctx.write_config_header('include/csp/autoconfig.h')
 
 def build(ctx):
 
@@ -187,10 +183,10 @@ def build(ctx):
     if ctx.options.install_csp:
         install_path = '${PREFIX}/lib'
         ctx.install_files('${PREFIX}/include/csp',
-                          ctx.path.ant_glob('include/csp/**'),
+                          ctx.path.ant_glob('include/csp/**/*.h'),
                           cwd=ctx.path.find_dir('include/csp'),
                           relative_trick=True)
-        ctx.install_files('${PREFIX}/include/csp', 'csp_autoconfig.h', cwd=ctx.bldnode)
+        ctx.install_files('${PREFIX}/include/csp', 'include/csp/autoconfig.h', cwd=ctx.bldnode)
 
     ctx(export_includes=ctx.env.INCLUDES_CSP, name='csp_h')
 
@@ -220,6 +216,18 @@ def build(ctx):
         ctx.program(source=['examples/csp_server_client.c',
                             'examples/csp_server_client_{0}.c'.format(ctx.env.OS)],
                     target='examples/csp_server_client',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+        
+        ctx.program(source=['examples/csp_server.c',
+                            'examples/csp_server_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_server',
+                    lib=ctx.env.LIBS,
+                    use='csp')
+        
+        ctx.program(source=['examples/csp_client.c',
+                            'examples/csp_client_{0}.c'.format(ctx.env.OS)],
+                    target='examples/csp_client',
                     lib=ctx.env.LIBS,
                     use='csp')
 

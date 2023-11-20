@@ -1,5 +1,3 @@
-
-
 /*
  * This is a implementation of the seq/ack handling taken from the Reliable Datagram Protocol (RDP)
  * For more information read RFC 908/1151. The implementation has been extended to include support for
@@ -15,6 +13,7 @@
 #include <csp/csp.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_error.h>
+#include "csp_macro.h"
 #include <csp/arch/csp_queue.h>
 #include <csp/arch/csp_time.h>
 
@@ -42,7 +41,7 @@ static uint32_t csp_rdp_delayed_acks = 1;
 static uint32_t csp_rdp_ack_timeout = 1000 / 4;
 static uint32_t csp_rdp_ack_delay_count = 4 / 2;
 
-typedef struct __attribute__((__packed__)) {
+typedef struct __packed {
 	uint8_t flags;
 	uint16_t seq_nr;
 	uint16_t ack_nr;
@@ -57,7 +56,7 @@ static int csp_rdp_close_internal(csp_conn_t * conn, uint8_t closed_by, bool sen
  */
 static rdp_header_t * csp_rdp_header_add(csp_packet_t * packet) {
 	rdp_header_t * header;
-	if ((packet->length + sizeof(*header)) > csp_buffer_data_size()) {
+	if ((packet->length + sizeof(*header)) > sizeof(packet->data)) {
 		return NULL;
 	}
 	header = (rdp_header_t *)&packet->data[packet->length];

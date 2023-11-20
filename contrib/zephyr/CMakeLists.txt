@@ -9,11 +9,19 @@ if(CONFIG_LIBCSP)
   # predefine it
   set(HAVE_SYS_SOCKET_H OFF)
 
+  if(CONFIG_CSP_USE_RTABLE)
+    set(CSP_USE_RTABLE ON)
+  endif()
+
+  if(CONFIG_CSP_HAVE_CAN)
+    set(HAVE_ZEPHYR_CAN ON)
+  endif()
+
   add_subdirectory(../.. build)
 
   zephyr_interface_library_named(libcsp)
   target_include_directories(libcsp INTERFACE ${ZEPHYR_CURRENT_MODULE_DIR}/include)
-  target_include_directories(libcsp INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/build)
+  target_include_directories(libcsp INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/build/include)
 
   zephyr_append_cmake_library(csp)
   target_link_libraries(csp PUBLIC zephyr_interface)

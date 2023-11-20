@@ -105,6 +105,7 @@ static PyObject * pycsp_service_handler(PyObject * self, PyObject * args) {
 static PyObject * pycsp_init(PyObject * self, PyObject * args) {
 	if (!PyArg_ParseTuple(args, "sss|bIb", &csp_conf.hostname, &csp_conf.model,
 						  &csp_conf.revision, &csp_conf.version, &csp_conf.conn_dfl_so, &csp_conf.dedup)) {
+
 		return NULL;
 	}
 
@@ -854,11 +855,12 @@ static PyObject * pycsp_can_socketcan_init(PyObject * self, PyObject * args) {
 	char * ifc;
 	int bitrate = 1000000;
 	int promisc = 0;
-	if (!PyArg_ParseTuple(args, "s|ii", &ifc, &bitrate, &promisc)) {
+	int addr = 0;
+	if (!PyArg_ParseTuple(args, "s|iii", &ifc, &addr, &bitrate, &promisc)) {
 		return NULL;
 	}
 
-	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, bitrate, promisc, NULL);
+	int res = csp_can_socketcan_open_and_add_interface(ifc, CSP_IF_CAN_DEFAULT_NAME, addr, bitrate, promisc, NULL);
 	if (res != CSP_ERR_NONE) {
 		return PyErr_Error("csp_can_socketcan_open_and_add_interface()", res);
 	}
@@ -896,7 +898,7 @@ static PyObject * pycsp_packet_set_data(PyObject * self, PyObject * args) {
 	if (packet == NULL) {
 		return NULL;  // TypeError is thrown
 	}
-	if (data.len > (int)csp_buffer_data_size()) {
+	if (data.len > (int)sizeof(packet->data)) {
 		return PyErr_Error("packet_set_data() - exceeding data size", CSP_ERR_INVAL);
 	}
 
@@ -930,10 +932,6 @@ static PyObject * pycsp_print_connections(PyObject * self, PyObject * args) {
 static PyObject * pycsp_print_routes(PyObject * self, PyObject * args) {
 	csp_rtable_print();
 	Py_RETURN_NONE;
-}
-
-static PyObject * pycsp_get_buffer_stats(PyObject * self, PyObject * args) {
-	return Py_BuildValue("iii", (int)csp_buffer_remaining(), (int)csp_buffer_size(), (int)csp_buffer_data_size());
 }
 
 static PyMethodDef methods[] = {
@@ -1005,7 +1003,6 @@ static PyMethodDef methods[] = {
 	{"packet_set_data", pycsp_packet_set_data, METH_VARARGS, ""},
 	{"print_connections", pycsp_print_connections, METH_NOARGS, ""},
 	{"print_routes", pycsp_print_routes, METH_NOARGS, ""},
-	{"get_buffer_stats", pycsp_get_buffer_stats, METH_NOARGS, ""},
 
 	/* sentinel */
 	{NULL, NULL, 0, NULL}};

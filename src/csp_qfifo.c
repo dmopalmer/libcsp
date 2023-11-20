@@ -1,15 +1,14 @@
-
-
 #include "csp_qfifo.h"
 
 #include <csp/arch/csp_queue.h>
 #include <csp/csp_debug.h>
 #include <csp/csp_buffer.h>
-#include <csp_autoconfig.h>
+#include "csp_macro.h"
+#include "csp/autoconfig.h"
 
-static csp_static_queue_t qfifo_queue __attribute__((section(NOINIT)));
-static csp_queue_handle_t qfifo_queue_handle __attribute__((section(NOINIT)));
-char qfifo_queue_buffer[sizeof(csp_qfifo_t) * CSP_QFIFO_LEN] __attribute__((section(NOINIT)));
+static csp_static_queue_t qfifo_queue __noinit;
+static csp_queue_handle_t qfifo_queue_handle __noinit;
+char qfifo_queue_buffer[sizeof(csp_qfifo_t) * CSP_QFIFO_LEN] __noinit;
 
 void csp_qfifo_init(void) {
 	qfifo_queue_handle = csp_queue_create_static(CSP_QFIFO_LEN, sizeof(csp_qfifo_t), qfifo_queue_buffer, &qfifo_queue);

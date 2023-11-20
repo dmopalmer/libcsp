@@ -19,10 +19,8 @@
  *
  */
 
-#define CSP_ID1_PRIO_SIZE  2
 #define CSP_ID1_HOST_SIZE  5
 #define CSP_ID1_PORT_SIZE  6
-#define CSP_ID1_FLAGS_SIZE 8
 
 #define CSP_ID1_PRIO_MASK    0x3
 #define CSP_ID1_PRIO_OFFSET  30
@@ -39,7 +37,7 @@
 
 #define CSP_ID1_HEADER_SIZE 4
 
-void csp_id1_prepend(csp_packet_t * packet) {
+static void csp_id1_prepend(csp_packet_t * packet) {
 
 	/* Pack into 32-bit using host endian */
 	uint32_t id1 = ((packet->id.pri << CSP_ID1_PRIO_OFFSET) |
@@ -58,7 +56,7 @@ void csp_id1_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id1, CSP_ID1_HEADER_SIZE);
 }
 
-int csp_id1_strip(csp_packet_t * packet) {
+static int csp_id1_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < CSP_ID1_HEADER_SIZE) {
 		return -1;
@@ -84,7 +82,7 @@ int csp_id1_strip(csp_packet_t * packet) {
 	return 0;
 }
 
-void csp_id1_setup_rx(csp_packet_t * packet) {
+static void csp_id1_setup_rx(csp_packet_t * packet) {
 	packet->frame_begin = packet->data - CSP_ID1_HEADER_SIZE;
 	packet->frame_length = 0;
 }
@@ -100,10 +98,8 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
  *
  */
 
-#define CSP_ID2_PRIO_SIZE  2
 #define CSP_ID2_HOST_SIZE  14
 #define CSP_ID2_PORT_SIZE  6
-#define CSP_ID2_FLAGS_SIZE 6
 
 #define CSP_ID2_PRIO_MASK    0x3
 #define CSP_ID2_PRIO_OFFSET  46
@@ -120,7 +116,7 @@ void csp_id1_setup_rx(csp_packet_t * packet) {
 
 #define CSP_ID2_HEADER_SIZE 6
 
-void csp_id2_prepend(csp_packet_t * packet) {
+static void csp_id2_prepend(csp_packet_t * packet) {
 
 	/* Pack into 64-bit using host endian */
 	uint64_t id2 = ((((uint64_t)packet->id.pri) << CSP_ID2_PRIO_OFFSET) |
@@ -140,7 +136,7 @@ void csp_id2_prepend(csp_packet_t * packet) {
 	memcpy(packet->frame_begin, &id2, CSP_ID2_HEADER_SIZE);
 }
 
-int csp_id2_strip(csp_packet_t * packet) {
+static int csp_id2_strip(csp_packet_t * packet) {
 
 	if (packet->frame_length < CSP_ID2_HEADER_SIZE) {
 		return -1;
@@ -169,7 +165,7 @@ int csp_id2_strip(csp_packet_t * packet) {
 	return 0;
 }
 
-void csp_id2_setup_rx(csp_packet_t * packet) {
+static void csp_id2_setup_rx(csp_packet_t * packet) {
 	packet->frame_begin = packet->data - CSP_ID2_HEADER_SIZE;
 	packet->frame_length = 0;
 }
@@ -191,6 +187,7 @@ void csp_id_prepend(csp_packet_t * packet) {
 }
 
 int csp_id_strip(csp_packet_t * packet) {
+	packet->timestamp_rx = 0;
 	if (csp_conf.version == 2) {
 		return csp_id2_strip(packet);
 	} else {
@@ -225,7 +222,11 @@ unsigned int csp_id_get_max_nodeid(void) {
 }
 
 unsigned int csp_id_get_max_port(void) {
-	return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+	if (csp_conf.version == 2) {
+		return ((1 << (CSP_ID2_PORT_SIZE)) - 1);
+	} else {
+		return ((1 << (CSP_ID1_PORT_SIZE)) - 1);
+	}
 }
 
 int csp_id_is_broadcast(uint16_t addr, csp_iface_t * iface) {

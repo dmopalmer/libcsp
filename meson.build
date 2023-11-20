@@ -24,6 +24,7 @@ conf.set10('CSP_USE_DEDUP', get_option('use_dedup'))
 conf.set10('CSP_HAVE_STDIO', get_option('have_stdio'))
 conf.set10('CSP_ENABLE_CSP_PRINT', get_option('enable_csp_print'))
 conf.set10('CSP_PRINT_STDIO', get_option('print_stdio'))
+conf.set10('CSP_USE_RTABLE', get_option('use_rtable'))
 
 csp_deps = []
 csp_sources = []
@@ -54,7 +55,7 @@ endif
 csp_deps += clib
 
 # Include paths
-csp_inc = include_directories(['.', 'include'])
+csp_inc = include_directories('include', 'src')
 
 # Default compile options
 csp_c_args = ['-Wshadow',
@@ -63,8 +64,7 @@ csp_c_args = ['-Wshadow',
 	      '-Wno-unused-parameter']
 
 subdir('src')
-
-csp_config_h = configure_file(output: 'csp_autoconfig.h', configuration: conf, install_dir: 'csp/')
+subdir('include/csp')
 
 if not meson.is_subproject()
   install_subdir('include', install_dir : '.')

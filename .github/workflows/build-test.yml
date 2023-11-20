@@ -1,7 +1,7 @@
 name: Build and Test
 on: [push, pull_request]
 jobs:
-  run-test:
+  run-tests:
     strategy:
       fail-fast: false
       matrix:
@@ -15,6 +15,11 @@ jobs:
           - meson
           - cmake
           - waf
+        compiler:
+          - CC: gcc
+            CXX: g++
+          - CC: clang
+            CXX: clang++
     runs-on: ${{ matrix.os }}
     steps:
       - name: Setup packages on Linux
@@ -35,10 +40,30 @@ jobs:
           brew install ninja ${{ matrix.buildsystem }}
           brew install zeromq
 
-      - uses: actions/checkout@v3
-      - run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      - name: Run Tests
+      - name: Build
+        env:
+          CC: ${{ matrix.compiler.CC }}
+          CXX: ${{ matrix.compiler.CXX }}
+        run: python3 ./examples/buildall.py ${{ matrix.arch }} --build-system=${{ matrix.buildsystem }}
+
+      - name: Run Loopback Test
         run: |
           ./build/examples/csp_arch
           ./build/examples/csp_server_client -t
+
+      - name: Run ZMQ Client Test
+        run: |
+          ./build/examples/zmqproxy &
+          ./build/examples/csp_server -z localhost -a 1 -t &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t
+          pkill zmqproxy
+
+      - name: Run ZMQ Server Test
+        run: |
+          ./build/examples/zmqproxy &
+          ./build/examples/csp_client -z localhost -a 2 -C 1 -t &
+          ./build/examples/csp_server -z localhost -a 1 -t
+          pkill zmqproxy

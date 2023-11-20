@@ -1,5 +1,3 @@
-
-
 #include "csp_io.h"
 
 #include <stdlib.h>
@@ -15,6 +13,7 @@
 #include <csp/arch/csp_time.h>
 #include <csp/crypto/csp_hmac.h>
 #include <csp/csp_id.h>
+#include "csp_macro.h"
 
 #include "csp_port.h"
 #include "csp_conn.h"
@@ -115,12 +114,14 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		if (csp_id_is_broadcast(idout->dst, iface)) {
 			idout->dst = csp_id_get_max_nodeid();
 		}
-		
+
 		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
 		 * is found. But without looping the list twice. And without using stack memory.
 		 * Is this even possible? */
 		copy = csp_buffer_clone(packet);
-		csp_send_direct_iface(idout, copy, iface, via, from_me);
+		if (copy != NULL) {
+			csp_send_direct_iface(idout, copy, iface, via, from_me);
+		}
 
 	}
 
@@ -130,53 +131,81 @@ void csp_send_direct(csp_id_t* idout, csp_packet_t * packet, csp_iface_t * route
 		return;
 	}
 
+#if CSP_USE_RTABLE
 	/* Try to send via routing table */
+	int route_found = 0;
 	csp_route_t * route = csp_rtable_find_route(idout->dst);
 	if (route != NULL) {
+		do {
+			route_found = 1;
 
-		/* Do not send back to same inteface (split horizon) 
-		 * This check is is similar to that below, but faster */
-		if (route->iface == routed_from) {
-			csp_buffer_free(packet);
-			return;
-		}
+			/* Do not send back to same inteface (split horizon)
+			* This check is is similar to that below, but faster */
+			if (route->iface == routed_from) {
+				continue;
+			}
 
-		/* Apply outgoing interface address to packet */
-		if ((from_me) && (idout->src == 0)) {
-			idout->src = route->iface->addr;
-		}
+			/* Do not send to interface with similar subnet (split horizon) */
+			if (csp_iflist_is_within_subnet(route->iface->addr, routed_from)) {
+				continue;
+			}
 
-		csp_send_direct_iface(idout, packet, route->iface, route->via, from_me);
+			/* Apply outgoing interface address to packet */
+			if ((from_me) && (idout->src == 0)) {
+				idout->src = route->iface->addr;
+			}
+
+			copy = csp_buffer_clone(packet);
+			if (copy != NULL) {
+				csp_send_direct_iface(idout, copy, route->iface, route->via, from_me);
+			}
+		} while ((route = csp_rtable_search_backward(route)) != NULL);
+	}
+
+	/* If the above worked, we don't want to look at default interfaces */
+	if (route_found == 1) {
+		csp_buffer_free(packet);
 		return;
 	}
 
-	/* Try to send via default interface */
-	csp_iface_t * dfl_if = csp_iflist_get_default();
-	if (dfl_if) {
+#endif
 
-		/* Do not send back to same inteface (split horizon) 
+	/* Try to send via default interfaces */
+	while ((iface = csp_iflist_get_by_isdfl(iface)) != NULL) {
+
+		/* Do not send back to same inteface (split horizon)
 		 * This check is is similar to that below, but faster */
-		if (dfl_if == routed_from) {
-			csp_buffer_free(packet);
-			return;
+		if (iface == routed_from) {
+			continue;
+		}
+
+		/* Do not send to interface with similar subnet (split horizon) */
+		if (csp_iflist_is_within_subnet(iface->addr, routed_from)) {
+			continue;
 		}
 
 		/* Apply outgoing interface address to packet */
 		if ((from_me) && (idout->src == 0)) {
-			idout->src = dfl_if->addr;
+			idout->src = iface->addr;
 		}
 
-		csp_send_direct_iface(idout, packet, dfl_if, CSP_NO_VIA_ADDRESS, from_me);
-		return;
+		/* Todo: Find an elegant way to avoid making a copy when only a single destination interface
+		 * is found. But without looping the list twice. And without using stack memory.
+		 * Is this even possible? */
+		copy = csp_buffer_clone(packet);
+		if (copy != NULL) {
+			csp_send_direct_iface(idout, copy, iface, via, from_me);
+		}
+
 	}
 
 	csp_buffer_free(packet);
 
 }
 
-__attribute__((weak)) void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
-	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u)\n",
-				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst);
+__weak void csp_output_hook(csp_id_t * idout, csp_packet_t * packet, csp_iface_t * iface, uint16_t via, int from_me) {
+	csp_print_packet("OUT: S %u, D %u, Dp %u, Sp %u, Pr %u, Fl 0x%02X, Sz %u VIA: %s (%u), Tms %u\n",
+				idout->src, idout->dst, idout->dport, idout->sport, idout->pri, idout->flags, packet->length, iface->name, (via != CSP_NO_VIA_ADDRESS) ? via : idout->dst, csp_get_ms());
 	return;
 }
 
@@ -226,10 +255,6 @@ void csp_send_direct_iface(csp_id_t* idout, csp_packet_t * packet, csp_iface_t *
 
 	/* Store length before passing to interface */
 	uint16_t bytes = packet->length;
-	uint16_t mtu = iface->mtu;
-
-	if (mtu > 0 && bytes > mtu)
-		goto tx_err;
 
 	if ((*iface->nexthop)(iface, via, packet, from_me) != CSP_ERR_NONE)
 		goto tx_err;

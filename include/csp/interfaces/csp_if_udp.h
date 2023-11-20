@@ -1,3 +1,8 @@
+/****************************************************************************
+ * **File:** csp/interfaces/csp_if_udp.h
+ *
+ * **Description:** UDP interface.
+ ****************************************************************************/
 #pragma once
 
 #include <csp/csp.h>
@@ -20,6 +25,7 @@ typedef struct {
 	pthread_t server_handle;
 	struct sockaddr_in peer_addr;
 
+	int sockfd;
 } csp_if_udp_conf_t;
 
 /**

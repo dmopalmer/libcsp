@@ -9,7 +9,7 @@ http://code.google.com/p/c-pthread-queue/
 
 #include <errno.h>
 #include <string.h>
-#include <malloc.h>
+#include <stdlib.h>
 
 #include <csp/csp.h>
 
@@ -99,7 +99,7 @@ static inline int wait_slot_available(pthread_queue_t * queue, struct timespec *
 			ret = pthread_cond_wait(&(queue->cond_full), &(queue->mutex));
 		}
 
-		if (ret != 0 && errno != EINTR) {
+		if (ret != 0 && ret != EINTR) {
 			return PTHREAD_QUEUE_FULL;  // Timeout
 		}
 	}
@@ -156,7 +156,7 @@ static inline int wait_item_available(pthread_queue_t * queue, struct timespec *
 			ret = pthread_cond_wait(&(queue->cond_empty), &(queue->mutex));
 		}
 
-		if (ret != 0 && errno != EINTR) {
+		if (ret != 0 && ret != EINTR) {
 			return PTHREAD_QUEUE_EMPTY;  // Timeout
 		}
 	}
@@ -218,5 +218,3 @@ int pthread_queue_free(pthread_queue_t * queue) {
 
 	return free;
 }
-
-

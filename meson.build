@@ -10,7 +10,7 @@ conf = configuration_data()
 
 conf.set('CSP_QFIFO_LEN', get_option('qfifo_len'))
 conf.set('CSP_PORT_MAX_BIND', get_option('port_max_bind'))
-conf.set('CSP_CONN_RXQUEUE_LEN', get_option('conn_rxqueue_len'))
+conf.set('CSP_CONN_RXQUEUE_LEN', get_option('conn_rxqueue_len')) 
 conf.set('CSP_CONN_MAX', get_option('conn_max'))
 conf.set('CSP_BUFFER_SIZE', get_option('buffer_size'))
 conf.set('CSP_BUFFER_COUNT', get_option('buffer_count'))

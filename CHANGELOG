@@ -1,3 +1,10 @@
+libcsp 2.0.1, xx-yy-zzzz
+------------------------
+- reinstatement: Mac OSX Support
+- reinstatement: csp_endian.h just includes <endian.h> except special case for macos
+- replacement:  #include <stdlib.h> instead of (non-standard) <malloc.h>
+
+
 libcsp 2.0, xx-yy-zzzz
 ----------------------
 - new: CSP Header 2.0. Support for 14-bit network addresses.

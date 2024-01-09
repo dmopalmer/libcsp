@@ -16,6 +16,11 @@
 #define MSG_CONFIRM (0)
 #endif
 
+#if !defined(PF_PACKET)
+// FIXME
+#define PF_PACKET 0
+#endif
+
 static int csp_if_udp_tx(csp_iface_t * iface, uint16_t via, csp_packet_t * packet, int from_me) {
 
 	csp_if_udp_conf_t * ifconf = iface->driver_data;

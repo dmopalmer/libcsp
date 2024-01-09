@@ -8,6 +8,9 @@
 #define __noinit __attribute__((section(NOINIT)))
 #define __packed __attribute__((__packed__))
 #define __unused __attribute__((__unused__))
+#undef __weak
+#define __weak __attribute__((weak))
+
 #else
 #define __noinit __attribute__((section(NOINIT)))
 #define __packed __attribute__((__packed__))

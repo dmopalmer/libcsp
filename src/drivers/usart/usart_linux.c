@@ -9,10 +9,6 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <sys/time.h>
-<<<<<<< HEAD
-#include <stdlib.h>
-=======
->>>>>>> 3ba636aa81ff7ac5e691562a6e759088850ff57a
 
 #include <csp/csp.h>
 #include <pthread.h>

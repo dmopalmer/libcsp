@@ -1,6 +1,6 @@
 #pragma once
 
-#include <csp_autoconfig.h>
+#include <csp/autoconfig.h>
 #if (CSP_MACOSX)
     #include <machine/endian.h>
     #include <libkern/OSByteOrder.h>
